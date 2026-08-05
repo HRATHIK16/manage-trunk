@@ -1,0 +1,32 @@
+.app {
+  display: flex;
+  min-height: 100vh;
+}
+
+.app__main {
+  flex: 1;
+  padding: 28px 36px 60px;
+  max-width: 980px;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 60px 40px;
+}
+
+.empty-state h2 {
+  margin: 0 0 10px;
+  font-size: 17px;
+}
+
+.empty-state p {
+  color: var(--text-muted);
+  font-size: 13.5px;
+  max-width: 440px;
+  margin: 0 auto 20px;
+  line-height: 1.5;
+}
+
+.mono {
+  font-family: var(--mono);
+}

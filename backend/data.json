@@ -1,0 +1,126 @@
+{
+  "trunks": {
+    "trunk_1ae3a8beec1a": {
+      "id": "trunk_1ae3a8beec1a",
+      "name": "dfawe",
+      "environment": "prod",
+      "pilotNumber": "1234",
+      "didStart": 1234,
+      "didEnd": 1235,
+      "totalChannels": 20,
+      "cps": 3,
+      "notes": "",
+      "createdAt": "2026-08-05T07:27:48.1484789Z"
+    },
+    "trunk_5ffef49f9952": {
+      "id": "trunk_5ffef49f9952",
+      "name": "aaa",
+      "environment": "staging",
+      "pilotNumber": "qqq",
+      "didStart": 111,
+      "didEnd": 112,
+      "totalChannels": 2,
+      "cps": 1,
+      "notes": "",
+      "createdAt": "2026-08-05T07:55:17.3360035Z"
+    },
+    "trunk_d6a50736c12d": {
+      "id": "trunk_d6a50736c12d",
+      "name": "aaa",
+      "environment": "staging",
+      "pilotNumber": "123",
+      "didStart": 111,
+      "didEnd": 112,
+      "totalChannels": 124,
+      "cps": 2,
+      "notes": "",
+      "createdAt": "2026-08-05T07:54:31.2741615Z"
+    },
+    "trunk_dc1ed8df2240": {
+      "id": "trunk_dc1ed8df2240",
+      "name": "Sandbox",
+      "environment": "lab",
+      "pilotNumber": "916366420267",
+      "didStart": 916366420267,
+      "didEnd": 916366420286,
+      "totalChannels": 20,
+      "cps": 5,
+      "notes": "",
+      "createdAt": "2026-08-05T07:00:19.6044881Z"
+    },
+    "trunk_e46d2a108759": {
+      "id": "trunk_e46d2a108759",
+      "name": "mlr-airtel",
+      "environment": "prod",
+      "pilotNumber": "8244463670",
+      "didStart": 8244463670,
+      "didEnd": 8244464169,
+      "totalChannels": 500,
+      "cps": 40,
+      "notes": "carrier is airtel and it netminated in managlore DC",
+      "createdAt": "2026-08-05T07:03:59.2962904Z"
+    }
+  },
+  "assignments": {
+    "asn_598a752ba596": {
+      "id": "asn_598a752ba596",
+      "trunkId": "trunk_dc1ed8df2240",
+      "tenantName": "acme",
+      "channelsAssigned": 10,
+      "didStart": 916366420277,
+      "didEnd": 916366420286,
+      "notes": "",
+      "createdAt": "2026-08-05T07:07:38.5059606Z"
+    },
+    "asn_685ee557b2e8": {
+      "id": "asn_685ee557b2e8",
+      "trunkId": "trunk_dc1ed8df2240",
+      "tenantName": "copter",
+      "channelsAssigned": 2,
+      "didStart": 916366420267,
+      "didEnd": 916366420270,
+      "notes": "",
+      "createdAt": "2026-08-05T07:01:13.1824852Z"
+    },
+    "asn_950f10b87bf0": {
+      "id": "asn_950f10b87bf0",
+      "trunkId": "trunk_e46d2a108759",
+      "tenantName": "copter",
+      "channelsAssigned": 100,
+      "didStart": 8244463670,
+      "didEnd": 8244463770,
+      "notes": "testing",
+      "createdAt": "2026-08-05T07:25:50.1433029Z"
+    },
+    "asn_b3b381c4a250": {
+      "id": "asn_b3b381c4a250",
+      "trunkId": "trunk_e46d2a108759",
+      "tenantName": "acme",
+      "channelsAssigned": 10,
+      "didStart": 8244463771,
+      "didEnd": 8244463781,
+      "notes": "",
+      "createdAt": "2026-08-05T07:27:03.7748453Z"
+    },
+    "asn_e48d3e527ee6": {
+      "id": "asn_e48d3e527ee6",
+      "trunkId": "trunk_dc1ed8df2240",
+      "tenantName": "abc",
+      "channelsAssigned": 1,
+      "didStart": 916366420272,
+      "didEnd": 916366420273,
+      "notes": "",
+      "createdAt": "2026-08-05T07:24:05.9747248Z"
+    },
+    "asn_edf18cbd31d7": {
+      "id": "asn_edf18cbd31d7",
+      "trunkId": "trunk_dc1ed8df2240",
+      "tenantName": "xyz",
+      "channelsAssigned": 5,
+      "didStart": 916366420275,
+      "didEnd": 916366420275,
+      "notes": "",
+      "createdAt": "2026-08-05T07:23:29.3252684Z"
+    }
+  }
+}
