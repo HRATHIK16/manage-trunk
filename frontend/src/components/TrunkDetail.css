@@ -24,6 +24,11 @@
   letter-spacing: -0.01em;
 }
 
+.detail__head-actions {
+  display: flex;
+  gap: 10px;
+}
+
 .env-tag {
   font-family: var(--mono);
   font-size: 10.5px;
@@ -36,21 +41,15 @@
 }
 
 .env-tag--prod {
-  color: var(--red);
-  border-color: var(--red-dim);
-  background: rgba(242, 84, 91, 0.06);
+  color: var(--amber);
+  border-color: var(--amber-dim);
+  background: rgba(255, 157, 66, 0.08);
 }
 
 .env-tag--lab {
   color: var(--green);
   border-color: var(--green-dim);
   background: rgba(74, 222, 128, 0.06);
-}
-
-.env-tag--staging {
-  color: var(--amber);
-  border-color: var(--amber-dim);
-  background: rgba(255, 157, 66, 0.06);
 }
 
 .detail__stats {
@@ -159,12 +158,18 @@
 
 .table__row {
   display: grid;
-  grid-template-columns: 1.4fr 0.8fr 1.6fr 1.6fr 0.7fr;
+  grid-template-columns: 1.3fr 0.7fr 1.5fr 1.4fr 1fr;
   gap: 10px;
   padding: 12px 18px;
   border-bottom: 1px solid var(--border-soft);
   align-items: center;
   font-size: 13px;
+}
+
+.table__row-actions {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
 }
 
 .table__row:last-child { border-bottom: none; }

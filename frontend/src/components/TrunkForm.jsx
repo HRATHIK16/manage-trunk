@@ -1,19 +1,25 @@
 import { useState } from 'react'
 import './forms.css'
 
-const empty = {
-  name: '',
-  environment: 'lab',
-  pilotNumber: '',
-  didStart: '',
-  didEnd: '',
-  totalChannels: '',
-  cps: '',
-  notes: '',
+function toFormState(trunk) {
+  if (!trunk) {
+    return { name: '', environment: 'prod', pilotNumber: '', didStart: '', didEnd: '', totalChannels: '', cps: '', notes: '' }
+  }
+  return {
+    name: trunk.name,
+    environment: trunk.environment,
+    pilotNumber: trunk.pilotNumber,
+    didStart: String(trunk.didStart),
+    didEnd: String(trunk.didEnd),
+    totalChannels: String(trunk.totalChannels),
+    cps: String(trunk.cps),
+    notes: trunk.notes || '',
+  }
 }
 
-export default function TrunkForm({ onCreate, onCancel }) {
-  const [form, setForm] = useState(empty)
+export default function TrunkForm({ initial = null, onSubmit, onCancel }) {
+  const editing = Boolean(initial)
+  const [form, setForm] = useState(() => toFormState(initial))
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
 
@@ -45,8 +51,8 @@ export default function TrunkForm({ onCreate, onCancel }) {
 
     setBusy(true)
     try {
-      await onCreate(payload)
-      setForm(empty)
+      await onSubmit(payload)
+      if (!editing) setForm(toFormState(null))
     } catch (err) {
       setError(err.message)
     } finally {
@@ -57,7 +63,7 @@ export default function TrunkForm({ onCreate, onCancel }) {
   return (
     <form className="panel form" onSubmit={submit}>
       <div className="form__header">
-        <h2>New SIP trunk</h2>
+        <h2>{editing ? 'Edit trunk' : 'New SIP trunk'}</h2>
         <button type="button" className="btn btn--ghost" onClick={onCancel}>Cancel</button>
       </div>
 
@@ -70,9 +76,8 @@ export default function TrunkForm({ onCreate, onCancel }) {
         <label className="field">
           <span>Environment</span>
           <select value={form.environment} onChange={(e) => set('environment', e.target.value)}>
-            <option value="lab">Lab</option>
             <option value="prod">Prod</option>
-            <option value="staging">Staging</option>
+            <option value="lab">Lab</option>
           </select>
         </label>
 
@@ -142,7 +147,7 @@ export default function TrunkForm({ onCreate, onCancel }) {
 
       <div className="form__actions">
         <button className="btn btn--primary" disabled={busy}>
-          {busy ? 'Creating…' : 'Create trunk'}
+          {busy ? 'Saving…' : editing ? 'Save changes' : 'Create trunk'}
         </button>
       </div>
     </form>

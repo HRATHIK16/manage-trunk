@@ -4,37 +4,13 @@
       "id": "trunk_1ae3a8beec1a",
       "name": "dfawe",
       "environment": "prod",
-      "pilotNumber": "1234",
+      "pilotNumber": "12345",
       "didStart": 1234,
       "didEnd": 1235,
       "totalChannels": 20,
       "cps": 3,
       "notes": "",
       "createdAt": "2026-08-05T07:27:48.1484789Z"
-    },
-    "trunk_5ffef49f9952": {
-      "id": "trunk_5ffef49f9952",
-      "name": "aaa",
-      "environment": "staging",
-      "pilotNumber": "qqq",
-      "didStart": 111,
-      "didEnd": 112,
-      "totalChannels": 2,
-      "cps": 1,
-      "notes": "",
-      "createdAt": "2026-08-05T07:55:17.3360035Z"
-    },
-    "trunk_d6a50736c12d": {
-      "id": "trunk_d6a50736c12d",
-      "name": "aaa",
-      "environment": "staging",
-      "pilotNumber": "123",
-      "didStart": 111,
-      "didEnd": 112,
-      "totalChannels": 124,
-      "cps": 2,
-      "notes": "",
-      "createdAt": "2026-08-05T07:54:31.2741615Z"
     },
     "trunk_dc1ed8df2240": {
       "id": "trunk_dc1ed8df2240",
@@ -62,6 +38,16 @@
     }
   },
   "assignments": {
+    "asn_58054f931f36": {
+      "id": "asn_58054f931f36",
+      "trunkId": "trunk_e46d2a108759",
+      "tenantName": "ck",
+      "channelsAssigned": 100,
+      "didStart": 8244463789,
+      "didEnd": 8244463888,
+      "notes": "callkaro",
+      "createdAt": "2026-08-06T05:51:04.9248913Z"
+    },
     "asn_598a752ba596": {
       "id": "asn_598a752ba596",
       "trunkId": "trunk_dc1ed8df2240",
@@ -81,6 +67,16 @@
       "didEnd": 916366420270,
       "notes": "",
       "createdAt": "2026-08-05T07:01:13.1824852Z"
+    },
+    "asn_6ead374b32f6": {
+      "id": "asn_6ead374b32f6",
+      "trunkId": "trunk_e46d2a108759",
+      "tenantName": "sl",
+      "channelsAssigned": 2,
+      "didStart": 8244463782,
+      "didEnd": 8244463788,
+      "notes": "testing",
+      "createdAt": "2026-08-06T05:49:35.2630016Z"
     },
     "asn_950f10b87bf0": {
       "id": "asn_950f10b87bf0",

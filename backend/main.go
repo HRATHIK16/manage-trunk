@@ -9,8 +9,8 @@ import (
 func withCORS(h http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS")
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 		if r.Method == http.MethodOptions {
 			w.WriteHeader(http.StatusNoContent)
 			return
@@ -21,14 +21,27 @@ func withCORS(h http.HandlerFunc) http.HandlerFunc {
 
 func main() {
 	store := NewStore()
-	api := &API{store: store}
+	auth := NewAuth()
+	audit := NewAuditLog()
+	api := &API{store: store, auth: auth, audit: audit}
 
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("/api/trunks", withCORS(api.trunksHandler))
+	// Public
+	mux.HandleFunc("/api/login", withCORS(api.loginHandler))
+	mux.HandleFunc("/api/health", withCORS(func(w http.ResponseWriter, r *http.Request) {
+		writeJSON(w, http.StatusOK, map[string]string{"status": "ok"})
+	}))
 
-	// /api/trunks/{id} and /api/trunks/{id}/summary and /api/trunks/{id}/assignments
-	mux.HandleFunc("/api/trunks/", withCORS(func(w http.ResponseWriter, r *http.Request) {
+	// Protected
+	mux.HandleFunc("/api/logout", withCORS(auth.requireAuth(api.logoutHandler)))
+	mux.HandleFunc("/api/trunks", withCORS(auth.requireAuth(api.trunksHandler)))
+	mux.HandleFunc("/api/audit", withCORS(auth.requireAuth(api.auditHandler)))
+	mux.HandleFunc("/api/backup", withCORS(auth.requireAuth(api.backupHandler)))
+	mux.HandleFunc("/api/restore", withCORS(auth.requireAuth(api.restoreHandler)))
+
+	// /api/trunks/{id}, /api/trunks/{id}/summary, /api/trunks/{id}/assignments
+	mux.HandleFunc("/api/trunks/", withCORS(auth.requireAuth(func(w http.ResponseWriter, r *http.Request) {
 		path := strings.TrimPrefix(r.URL.Path, "/api/trunks/")
 		parts := strings.Split(strings.Trim(path, "/"), "/")
 
@@ -48,9 +61,9 @@ func main() {
 		default:
 			http.NotFound(w, r)
 		}
-	}))
+	})))
 
-	mux.HandleFunc("/api/assignments/", withCORS(func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/api/assignments/", withCORS(auth.requireAuth(func(w http.ResponseWriter, r *http.Request) {
 		id := strings.TrimPrefix(r.URL.Path, "/api/assignments/")
 		id = strings.Trim(id, "/")
 		if id == "" {
@@ -58,11 +71,7 @@ func main() {
 			return
 		}
 		api.assignmentByIDHandler(w, r, id)
-	}))
-
-	mux.HandleFunc("/api/health", withCORS(func(w http.ResponseWriter, r *http.Request) {
-		writeJSON(w, http.StatusOK, map[string]string{"status": "ok"})
-	}))
+	})))
 
 	addr := ":8080"
 	log.Printf("sip-trunk-manager backend listening on %s", addr)

@@ -99,6 +99,52 @@ func (s *Store) CreateTrunk(t SipTrunk) SipTrunk {
 	return t
 }
 
+// UpdateTrunk overwrites a trunk's editable fields, refusing changes that
+// would strand existing tenant assignments (shrinking capacity below what's
+// already handed out, or narrowing the DID range past assigned DIDs).
+func (s *Store) UpdateTrunk(id string, upd SipTrunk) (SipTrunk, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	existing, ok := s.trunks[id]
+	if !ok {
+		return SipTrunk{}, fmt.Errorf("trunk not found")
+	}
+	if upd.DIDStart > upd.DIDEnd {
+		return SipTrunk{}, fmt.Errorf("did range start must be <= end")
+	}
+
+	channelsUsed := 0
+	var minDID, maxDID int64
+	hasAssignments := false
+	for _, a := range s.assignments {
+		if a.TrunkID != id {
+			continue
+		}
+		channelsUsed += a.ChannelsAssigned
+		if !hasAssignments || a.DIDStart < minDID {
+			minDID = a.DIDStart
+		}
+		if !hasAssignments || a.DIDEnd > maxDID {
+			maxDID = a.DIDEnd
+		}
+		hasAssignments = true
+	}
+
+	if upd.TotalChannels < channelsUsed {
+		return SipTrunk{}, fmt.Errorf("can't set total channels below %d — that many are already assigned to tenants", channelsUsed)
+	}
+	if hasAssignments && (upd.DIDStart > minDID || upd.DIDEnd < maxDID) {
+		return SipTrunk{}, fmt.Errorf("can't shrink did range below existing tenant assignments (%d-%d already in use)", minDID, maxDID)
+	}
+
+	upd.ID = id
+	upd.CreatedAt = existing.CreatedAt
+	s.trunks[id] = upd
+	s.persistLocked()
+	return upd, nil
+}
+
 func (s *Store) DeleteTrunk(id string) bool {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -127,6 +173,13 @@ func (s *Store) ListAssignmentsForTrunk(trunkID string) []Assignment {
 		}
 	}
 	return out
+}
+
+func (s *Store) GetAssignment(id string) (Assignment, bool) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	a, ok := s.assignments[id]
+	return a, ok
 }
 
 func (s *Store) CreateAssignment(a Assignment) (Assignment, error) {
@@ -177,6 +230,54 @@ func (s *Store) CreateAssignment(a Assignment) (Assignment, error) {
 	return a, nil
 }
 
+// UpdateAssignment re-validates capacity and DID overlap against every
+// *other* assignment on the trunk (excluding itself) before saving.
+func (s *Store) UpdateAssignment(id string, upd Assignment) (Assignment, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	existing, ok := s.assignments[id]
+	if !ok {
+		return Assignment{}, fmt.Errorf("assignment not found")
+	}
+	trunk, ok := s.trunks[existing.TrunkID]
+	if !ok {
+		return Assignment{}, fmt.Errorf("trunk not found")
+	}
+	if upd.DIDStart > upd.DIDEnd {
+		return Assignment{}, fmt.Errorf("did range start must be <= end")
+	}
+	if upd.DIDStart < trunk.DIDStart || upd.DIDEnd > trunk.DIDEnd {
+		return Assignment{}, fmt.Errorf("did range must fall within the trunk's did range (%d-%d)", trunk.DIDStart, trunk.DIDEnd)
+	}
+
+	channelsUsed := 0
+	for _, ex := range s.assignments {
+		if ex.TrunkID == existing.TrunkID && ex.ID != id {
+			channelsUsed += ex.ChannelsAssigned
+		}
+	}
+	if channelsUsed+upd.ChannelsAssigned > trunk.TotalChannels {
+		return Assignment{}, fmt.Errorf("not enough free channels: trunk has %d total, %d assigned to other tenants, requested %d",
+			trunk.TotalChannels, channelsUsed, upd.ChannelsAssigned)
+	}
+
+	for _, ex := range s.assignments {
+		if ex.TrunkID == existing.TrunkID && ex.ID != id {
+			if upd.DIDStart <= ex.DIDEnd && ex.DIDStart <= upd.DIDEnd {
+				return Assignment{}, fmt.Errorf("did range overlaps existing assignment to %q (%d-%d)", ex.TenantName, ex.DIDStart, ex.DIDEnd)
+			}
+		}
+	}
+
+	upd.ID = id
+	upd.TrunkID = existing.TrunkID
+	upd.CreatedAt = existing.CreatedAt
+	s.assignments[id] = upd
+	s.persistLocked()
+	return upd, nil
+}
+
 func (s *Store) DeleteAssignment(id string) bool {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -215,4 +316,34 @@ func (s *Store) Summary(trunkID string) (TrunkSummary, error) {
 		DIDsAssigned: didsAssigned,
 		DIDsFree:     totalDIDs - didsAssigned,
 	}, nil
+}
+
+// ---- Backup / restore ----
+
+func (s *Store) ExportAll() (map[string]SipTrunk, map[string]Assignment) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	trunks := make(map[string]SipTrunk, len(s.trunks))
+	for k, v := range s.trunks {
+		trunks[k] = v
+	}
+	assignments := make(map[string]Assignment, len(s.assignments))
+	for k, v := range s.assignments {
+		assignments[k] = v
+	}
+	return trunks, assignments
+}
+
+func (s *Store) ImportAll(trunks map[string]SipTrunk, assignments map[string]Assignment) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if trunks == nil {
+		trunks = map[string]SipTrunk{}
+	}
+	if assignments == nil {
+		assignments = map[string]Assignment{}
+	}
+	s.trunks = trunks
+	s.assignments = assignments
+	s.persistLocked()
 }

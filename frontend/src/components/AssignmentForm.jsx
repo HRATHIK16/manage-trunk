@@ -1,10 +1,20 @@
 import { useState } from 'react'
 import './forms.css'
 
-const empty = { tenantName: '', channelsAssigned: '', didStart: '', didEnd: '', notes: '' }
+function toFormState(assignment) {
+  if (!assignment) return { tenantName: '', channelsAssigned: '', didStart: '', didEnd: '', notes: '' }
+  return {
+    tenantName: assignment.tenantName,
+    channelsAssigned: String(assignment.channelsAssigned),
+    didStart: String(assignment.didStart),
+    didEnd: String(assignment.didEnd),
+    notes: assignment.notes || '',
+  }
+}
 
-export default function AssignmentForm({ onAssign, channelsFree, didFloor, didCeil }) {
-  const [form, setForm] = useState(empty)
+export default function AssignmentForm({ initial = null, onSubmit, onCancel, channelsFree, didFloor, didCeil }) {
+  const editing = Boolean(initial)
+  const [form, setForm] = useState(() => toFormState(initial))
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
 
@@ -31,8 +41,8 @@ export default function AssignmentForm({ onAssign, channelsFree, didFloor, didCe
 
     setBusy(true)
     try {
-      await onAssign(payload)
-      setForm(empty)
+      await onSubmit(payload)
+      if (!editing) setForm(toFormState(null))
     } catch (err) {
       setError(err.message)
     } finally {
@@ -43,7 +53,7 @@ export default function AssignmentForm({ onAssign, channelsFree, didFloor, didCe
   return (
     <form className="panel form form--compact" onSubmit={submit}>
       <div className="form__header">
-        <h3>Assign to tenant</h3>
+        <h3>{editing ? `Edit ${initial.tenantName}'s assignment` : 'Assign to tenant'}</h3>
         <span className="hint">{channelsFree} channel{channelsFree === 1 ? '' : 's'} free · DIDs {didFloor}–{didCeil}</span>
       </div>
 
@@ -97,8 +107,9 @@ export default function AssignmentForm({ onAssign, channelsFree, didFloor, didCe
 
       <div className="form__actions">
         <button className="btn btn--primary" disabled={busy}>
-          {busy ? 'Assigning…' : 'Assign'}
+          {busy ? 'Saving…' : editing ? 'Save changes' : 'Assign'}
         </button>
+        {editing && <button type="button" className="btn btn--ghost" onClick={onCancel} disabled={busy}>Cancel</button>}
       </div>
     </form>
   )

@@ -1,8 +1,14 @@
+import { useState } from 'react'
+import { useAuth } from '../auth/AuthContext'
+import BackupPanel from './BackupPanel'
 import './Sidebar.css'
 
-const ORDER = ['prod', 'staging', 'lab']
+const ORDER = ['prod', 'lab']
 
-export default function Sidebar({ trunks, selectedId, onSelect, onNew }) {
+export default function Sidebar({ trunks, selectedId, onSelect, onNew, onDataChanged }) {
+  const { username, logout } = useAuth()
+  const [showBackup, setShowBackup] = useState(false)
+
   const groups = {}
   for (const t of trunks) {
     const key = t.environment || 'other'
@@ -39,6 +45,20 @@ export default function Sidebar({ trunks, selectedId, onSelect, onNew }) {
           </div>
         ))}
       </div>
+
+      <div className="sidebar__footer">
+        <button className="sidebar__footer-btn" onClick={() => setShowBackup(true)}>
+          ⇩ Backup &amp; restore
+        </button>
+        <div className="sidebar__user">
+          <span className="sidebar__user-name mono">{username}</span>
+          <button className="sidebar__footer-btn sidebar__footer-btn--muted" onClick={logout}>Log out</button>
+        </div>
+      </div>
+
+      {showBackup && (
+        <BackupPanel onClose={() => setShowBackup(false)} onRestored={onDataChanged} />
+      )}
     </aside>
   )
 }

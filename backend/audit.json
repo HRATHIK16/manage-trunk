@@ -1,0 +1,51 @@
+[
+  {
+    "id": "evt_b7c4cb98535f",
+    "timestamp": "2026-08-06T05:47:54.1352413Z",
+    "user": "admin",
+    "action": "auth.login",
+    "message": "logged in"
+  },
+  {
+    "id": "evt_c248f03adf58",
+    "timestamp": "2026-08-06T05:48:36.001198Z",
+    "user": "admin",
+    "action": "trunk.updated",
+    "message": "updated trunk \"dfawe\""
+  },
+  {
+    "id": "evt_d08b587ee425",
+    "timestamp": "2026-08-06T05:49:35.2635073Z",
+    "user": "admin",
+    "action": "assignment.created",
+    "message": "assigned 2 channel(s) and DIDs 8244463782–8244463788 to \"sl\" on trunk \"mlr-airtel\""
+  },
+  {
+    "id": "evt_4476e927ac7d",
+    "timestamp": "2026-08-06T05:51:04.9256354Z",
+    "user": "admin",
+    "action": "assignment.created",
+    "message": "assigned 100 channel(s) and DIDs 8244463789–8244463888 to \"ck\" on trunk \"mlr-airtel\""
+  },
+  {
+    "id": "evt_7647f3acf5f5",
+    "timestamp": "2026-08-06T05:51:31.0213083Z",
+    "user": "admin",
+    "action": "trunk.deleted",
+    "message": "deleted trunk \"aaa\""
+  },
+  {
+    "id": "evt_0627619799ee",
+    "timestamp": "2026-08-06T05:51:36.1306123Z",
+    "user": "admin",
+    "action": "trunk.deleted",
+    "message": "deleted trunk \"aaa\""
+  },
+  {
+    "id": "evt_9d0eb34703e1",
+    "timestamp": "2026-08-06T07:00:49.3420621Z",
+    "user": "hrathik",
+    "action": "backup.restored",
+    "message": "restored data from a backup file (3 trunk(s), 8 assignment(s))"
+  }
+]

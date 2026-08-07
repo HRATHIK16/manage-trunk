@@ -2,6 +2,8 @@ import { useEffect, useState, useCallback } from 'react'
 import { api } from '../api'
 import JackBar, { tenantColor } from './JackBar'
 import AssignmentForm from './AssignmentForm'
+import TrunkForm from './TrunkForm'
+import ConfirmDialog from './ConfirmDialog'
 import './TrunkDetail.css'
 
 function fmtDID(n) {
@@ -11,7 +13,9 @@ function fmtDID(n) {
 export default function TrunkDetail({ trunk, onChanged, onDeleteTrunk }) {
   const [summary, setSummary] = useState(null)
   const [error, setError] = useState('')
-  const [showAssignForm, setShowAssignForm] = useState(false)
+  const [assignForm, setAssignForm] = useState(null) // null | { mode: 'create' } | { mode: 'edit', assignment }
+  const [editingTrunk, setEditingTrunk] = useState(false)
+  const [confirmState, setConfirmState] = useState(null) // { title, message, danger, onConfirm }
 
   const refresh = useCallback(() => {
     api.getSummary(trunk.id).then(setSummary).catch((e) => setError(e.message))
@@ -19,7 +23,8 @@ export default function TrunkDetail({ trunk, onChanged, onDeleteTrunk }) {
 
   useEffect(() => {
     setSummary(null)
-    setShowAssignForm(false)
+    setAssignForm(null)
+    setEditingTrunk(false)
     refresh()
   }, [trunk.id, refresh])
 
@@ -33,24 +38,69 @@ export default function TrunkDetail({ trunk, onChanged, onDeleteTrunk }) {
     label: `${a.tenantName} — ${a.channelsAssigned} ch`,
   }))
 
-  async function handleAssign(payload) {
-    await api.createAssignment(trunk.id, payload)
+  async function handleTrunkEditSubmit(payload) {
+    await api.updateTrunk(trunk.id, payload)
+    setEditingTrunk(false)
+    onChanged?.()
+    refresh()
+  }
+
+  async function handleAssignSubmit(payload) {
+    if (assignForm.mode === 'edit') {
+      await api.updateAssignment(assignForm.assignment.id, payload)
+    } else {
+      await api.createAssignment(trunk.id, payload)
+    }
+    setAssignForm(null)
     refresh()
     onChanged?.()
   }
 
-  async function handleUnassign(id) {
-    if (!confirm('Remove this tenant assignment? Its channels and DIDs return to the free pool.')) return
-    await api.deleteAssignment(id)
-    refresh()
-    onChanged?.()
+  function handleUnassign(a) {
+    setConfirmState({
+      title: 'Remove assignment',
+      message: `Remove ${a.tenantName}'s assignment? Its ${a.channelsAssigned} channel${a.channelsAssigned === 1 ? '' : 's'} and DID block return to the free pool.`,
+      danger: true,
+      confirmLabel: 'Remove',
+      onConfirm: async () => {
+        await api.deleteAssignment(a.id)
+        setConfirmState(null)
+        refresh()
+        onChanged?.()
+      },
+    })
   }
 
-  async function handleDeleteTrunk() {
-    if (!confirm(`Delete trunk "${trunk.name}" and all its tenant assignments? This can't be undone.`)) return
-    await api.deleteTrunk(trunk.id)
-    onDeleteTrunk?.()
+  function handleDeleteTrunk() {
+    setConfirmState({
+      title: 'Delete trunk',
+      message: `Delete trunk "${trunk.name}" and all its tenant assignments? This can't be undone.`,
+      danger: true,
+      confirmLabel: 'Delete trunk',
+      onConfirm: async () => {
+        await api.deleteTrunk(trunk.id)
+        setConfirmState(null)
+        onDeleteTrunk?.()
+      },
+    })
   }
+
+  if (editingTrunk) {
+    return (
+      <TrunkForm
+        initial={trunk}
+        onSubmit={handleTrunkEditSubmit}
+        onCancel={() => setEditingTrunk(false)}
+      />
+    )
+  }
+
+  // When editing an assignment, its own channels/DIDs count as "free" again
+  // for the purposes of the form's hint text and validation headroom.
+  const editingAssignment = assignForm?.mode === 'edit' ? assignForm.assignment : null
+  const channelsFreeForForm = editingAssignment
+    ? summary.channelsFree + editingAssignment.channelsAssigned
+    : summary.channelsFree
 
   return (
     <div className="detail">
@@ -59,7 +109,10 @@ export default function TrunkDetail({ trunk, onChanged, onDeleteTrunk }) {
           <span className={`env-tag env-tag--${trunk.environment}`}>{trunk.environment}</span>
           <h1>{trunk.name}</h1>
         </div>
-        <button className="btn btn--danger" onClick={handleDeleteTrunk}>Delete trunk</button>
+        <div className="detail__head-actions">
+          <button className="btn" onClick={() => setEditingTrunk(true)}>Edit trunk</button>
+          <button className="btn btn--danger" onClick={handleDeleteTrunk}>Delete trunk</button>
+        </div>
       </div>
 
       <div className="panel detail__stats">
@@ -117,15 +170,20 @@ export default function TrunkDetail({ trunk, onChanged, onDeleteTrunk }) {
       <div className="detail__tenants">
         <div className="detail__tenants-head">
           <h2>Tenants on this trunk</h2>
-          <button className="btn btn--primary" onClick={() => setShowAssignForm((v) => !v)}>
-            {showAssignForm ? 'Close' : '+ Assign tenant'}
+          <button
+            className="btn btn--primary"
+            onClick={() => setAssignForm(assignForm ? null : { mode: 'create' })}
+          >
+            {assignForm ? 'Close' : '+ Assign tenant'}
           </button>
         </div>
 
-        {showAssignForm && (
+        {assignForm && (
           <AssignmentForm
-            onAssign={handleAssign}
-            channelsFree={summary.channelsFree}
+            initial={editingAssignment}
+            onSubmit={handleAssignSubmit}
+            onCancel={() => setAssignForm(null)}
+            channelsFree={channelsFreeForForm}
             didFloor={trunk.didStart}
             didCeil={trunk.didEnd}
           />
@@ -151,14 +209,26 @@ export default function TrunkDetail({ trunk, onChanged, onDeleteTrunk }) {
                 <div className="mono">{a.channelsAssigned}</div>
                 <div className="mono">{fmtDID(a.didStart)}–{fmtDID(a.didEnd)}</div>
                 <div className="dim">{a.notes || '—'}</div>
-                <div>
-                  <button className="btn btn--ghost btn--small" onClick={() => handleUnassign(a.id)}>Remove</button>
+                <div className="table__row-actions">
+                  <button className="btn btn--ghost btn--small" onClick={() => setAssignForm({ mode: 'edit', assignment: a })}>Edit</button>
+                  <button className="btn btn--ghost btn--small" onClick={() => handleUnassign(a)}>Remove</button>
                 </div>
               </div>
             ))}
           </div>
         )}
       </div>
+
+      {confirmState && (
+        <ConfirmDialog
+          title={confirmState.title}
+          message={confirmState.message}
+          confirmLabel={confirmState.confirmLabel}
+          danger={confirmState.danger}
+          onConfirm={confirmState.onConfirm}
+          onCancel={() => setConfirmState(null)}
+        />
+      )}
     </div>
   )
 }
