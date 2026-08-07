@@ -1,4 +1,4 @@
-# Trunkline — SIP Trunk Manager
+# Trunk Manager
 
 A small full-stack app for tracking SIP trunks and how their channel/DID
 capacity is carved up across tenants — e.g. 2 channels + 2 DIDs handed out
@@ -12,15 +12,22 @@ on a 20-channel lab trunk, and 20+ channels plus hundreds of DIDs on a
 
 ## What it does
 
-- Create and **edit** a SIP trunk: pilot number, DID range, total channel
-  count, CPS limit, environment (Prod or Lab — Prod is the default).
+- Create and **edit** a SIP trunk: pilot number, one or more DID ranges,
+  total channel count, CPS, environment (Prod or Lab — Prod is the default).
+  Most trunks have a single DID range, but a trunk can have several
+  non-contiguous blocks (e.g. `1000–2000` and `4000–5000`) if that's how the
+  carrier handed them to you.
 - Assign a slice of a trunk's channels + a DID sub-range to a tenant, and
-  **edit** or remove that assignment later.
+  **edit** or remove that assignment later. When assigning, the app shows
+  the currently-available DID blocks (whatever's left after subtracting
+  existing assignments) as clickable chips, so you're not doing that math
+  by hand — pick a block, or narrow it down to the exact range you need.
 - The backend rejects a change if it would:
   - exceed the trunk's total channels,
-  - place a DID range outside the trunk's DID range,
+  - place a DID range outside all of the trunk's DID ranges, or straddle
+    two separate ranges,
   - overlap a DID range already assigned to another tenant, or
-  - shrink a trunk's channels/DID range below what's already assigned.
+  - remove DID coverage or channel capacity that's already assigned.
 - Destructive actions (delete trunk, remove assignment, restore from backup)
   ask for confirmation in an in-app dialog — no browser popups.
 - **Login required.** A small set of named users lives in
@@ -34,8 +41,8 @@ on a 20-channel lab trunk, and 20+ channels plus hundreds of DIDs on a
   deployment or a brand new one — to pick up exactly where you left off.
 - The UI shows live capacity: a "patch panel" style channel view (individual
   jacks for smaller trunks, a proportional bar for larger ones so a 500-channel
-  trunk doesn't render 500 boxes) plus a DID allocation bar, and a table of
-  every tenant assignment.
+  trunk doesn't render 500 boxes) plus a usage bar per DID range, and a table
+  of every tenant assignment.
 - Trunks are grouped by environment (Prod / Lab) in the sidebar.
 
 ## Running it
@@ -91,7 +98,7 @@ Click **Backup & restore** at the bottom of the sidebar:
 - **Download backup** saves a dated `.json` file with every trunk,
   assignment, and the full activity history.
 - **Restore** uploads a backup file and replaces everything currently in
-  Trunkline with its contents (after an in-app confirmation, since it's
+  Trunk Manager with its contents (after an in-app confirmation, since it's
   destructive). This is the recommended way to move to a new VM: stand up
   the app fresh, log in, and restore your latest backup.
 
@@ -129,8 +136,9 @@ All `✓` routes need `Authorization: Bearer <token>` from `/api/login`.
   "name": "Airtel-Prod-01",
   "environment": "prod",
   "pilotNumber": "918041299900",
-  "didStart": 918041200000,
-  "didEnd": 918041200999,
+  "didRanges": [
+    { "start": 918041200000, "end": 918041200999 }
+  ],
   "totalChannels": 500,
   "cps": 50,
   "notes": "optional"
@@ -138,6 +146,8 @@ All `✓` routes need `Authorization: Bearer <token>` from `/api/login`.
 ```
 
 `environment` must be `"prod"` or `"lab"` (empty defaults to `"prod"`).
+`didRanges` needs at least one entry; add more if the trunk has separate,
+non-contiguous DID blocks (they can't overlap each other).
 
 ### Assignment payload (`POST`/`PUT` on assignments)
 
@@ -151,9 +161,11 @@ All `✓` routes need `Authorization: Bearer <token>` from `/api/login`.
 }
 ```
 
-DIDs are stored as plain numbers so ranges can be validated with simple
-integer math — enter DIDs as digits only (e.g. `918041200000`), no `+`,
-spaces, or dashes.
+An assignment is always a single contiguous block, and must fall entirely
+within one of the trunk's DID ranges (it can't straddle two separate
+blocks). DIDs are stored as plain numbers so ranges can be validated with
+simple integer math — enter DIDs as digits only (e.g. `918041200000`), no
+`+`, spaces, or dashes.
 
 ## Extending this
 

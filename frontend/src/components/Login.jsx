@@ -27,7 +27,7 @@ export default function Login() {
       <form className="login__card panel" onSubmit={submit}>
         <div className="login__brand">
           <span className="sidebar__mark">◆</span>
-          <span>Trunkline</span>
+          <span>Trunk Manager</span>
         </div>
         <p className="login__sub">Sign in to manage SIP trunks.</p>
 

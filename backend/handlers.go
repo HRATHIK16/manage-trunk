@@ -45,11 +45,8 @@ func validateTrunkInput(t SipTrunk) string {
 	if strings.TrimSpace(t.PilotNumber) == "" {
 		return "pilot number is required"
 	}
-	if t.DIDStart <= 0 || t.DIDEnd <= 0 {
-		return "did range must be positive numbers"
-	}
-	if t.DIDStart > t.DIDEnd {
-		return "did range start must be <= end"
+	if msg := validateDIDRanges(t.DIDRanges); msg != "" {
+		return msg
 	}
 	if t.TotalChannels <= 0 {
 		return "total channels must be greater than 0"
@@ -317,7 +314,7 @@ func (api *API) backupHandler(w http.ResponseWriter, r *http.Request) {
 		Assignments: assignments,
 		Audit:       api.audit.All(),
 	}
-	filename := fmt.Sprintf("trunkline-backup-%s.json", time.Now().UTC().Format("2006-01-02"))
+	filename := fmt.Sprintf("trunk-manager-backup-%s.json", time.Now().UTC().Format("2006-01-02"))
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%q", filename))
 	_ = json.NewEncoder(w).Encode(payload)

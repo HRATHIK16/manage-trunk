@@ -4,6 +4,7 @@ import JackBar, { tenantColor } from './JackBar'
 import AssignmentForm from './AssignmentForm'
 import TrunkForm from './TrunkForm'
 import ConfirmDialog from './ConfirmDialog'
+import './forms.css'
 import './TrunkDetail.css'
 
 function fmtDID(n) {
@@ -13,9 +14,9 @@ function fmtDID(n) {
 export default function TrunkDetail({ trunk, onChanged, onDeleteTrunk }) {
   const [summary, setSummary] = useState(null)
   const [error, setError] = useState('')
-  const [assignForm, setAssignForm] = useState(null) // null | { mode: 'create' } | { mode: 'edit', assignment }
+  const [assignForm, setAssignForm] = useState(null) // null | { mode: 'create', prefillRange? } | { mode: 'edit', assignment }
   const [editingTrunk, setEditingTrunk] = useState(false)
-  const [confirmState, setConfirmState] = useState(null) // { title, message, danger, onConfirm }
+  const [confirmState, setConfirmState] = useState(null)
 
   const refresh = useCallback(() => {
     api.getSummary(trunk.id).then(setSummary).catch((e) => setError(e.message))
@@ -31,12 +32,15 @@ export default function TrunkDetail({ trunk, onChanged, onDeleteTrunk }) {
   if (error) return <div className="panel form">Failed to load: {error}</div>
   if (!summary) return <div className="panel form">Loading…</div>
 
+  const didRanges = trunk.didRanges || []
+  const freeDidRanges = summary.freeDidRanges || []
   const assignments = [...summary.assignments].sort((a, b) => a.didStart - b.didStart)
   const segments = assignments.map((a, i) => ({
     count: a.channelsAssigned,
     color: tenantColor(i),
     label: `${a.tenantName} — ${a.channelsAssigned} ch`,
   }))
+  const colorByAssignmentId = Object.fromEntries(assignments.map((a, i) => [a.id, tenantColor(i)]))
 
   async function handleTrunkEditSubmit(payload) {
     await api.updateTrunk(trunk.id, payload)
@@ -96,11 +100,19 @@ export default function TrunkDetail({ trunk, onChanged, onDeleteTrunk }) {
   }
 
   // When editing an assignment, its own channels/DIDs count as "free" again
-  // for the purposes of the form's hint text and validation headroom.
+  // for the form's headroom — and its own DID block should show up as an
+  // available option too, since the tenant can shrink or move within it.
   const editingAssignment = assignForm?.mode === 'edit' ? assignForm.assignment : null
   const channelsFreeForForm = editingAssignment
     ? summary.channelsFree + editingAssignment.channelsAssigned
     : summary.channelsFree
+  const freeRangesForForm = editingAssignment
+    ? [...freeDidRanges, { start: editingAssignment.didStart, end: editingAssignment.didEnd }].sort((a, b) => a.start - b.start)
+    : freeDidRanges
+
+  function openAssignForm(prefillRange) {
+    setAssignForm({ mode: 'create', prefillRange })
+  }
 
   return (
     <div className="detail">
@@ -121,12 +133,12 @@ export default function TrunkDetail({ trunk, onChanged, onDeleteTrunk }) {
           <span className="stat__value mono">{trunk.pilotNumber}</span>
         </div>
         <div className="stat">
-          <span className="stat__label">DID range</span>
-          <span className="stat__value mono">{fmtDID(trunk.didStart)} – {fmtDID(trunk.didEnd)}</span>
+          <span className="stat__label">CPS</span>
+          <span className="stat__value mono">{trunk.cps}</span>
         </div>
         <div className="stat">
-          <span className="stat__label">CPS limit</span>
-          <span className="stat__value mono">{trunk.cps}/s</span>
+          <span className="stat__label">Total channels</span>
+          <span className="stat__value mono">{trunk.totalChannels}</span>
         </div>
         {trunk.notes && (
           <div className="stat stat--wide">
@@ -147,23 +159,59 @@ export default function TrunkDetail({ trunk, onChanged, onDeleteTrunk }) {
 
         <div className="capacity__row">
           <div className="capacity__label">
-            <span>DID pool</span>
+            <span>DID pool{didRanges.length > 1 ? ` — ${didRanges.length} ranges` : ''}</span>
             <span className="mono capacity__num">{summary.didsAssigned} / {summary.totalDids} assigned</span>
           </div>
-          <div className="didbar">
-            {assignments.map((a, i) => {
-              const left = ((a.didStart - trunk.didStart) / summary.totalDids) * 100
-              const width = ((a.didEnd - a.didStart + 1) / summary.totalDids) * 100
+
+          <div className="didranges">
+            {didRanges.map((range, ri) => {
+              const rangeSize = range.end - range.start + 1
+              const rangeAssignments = assignments.filter((a) => a.didStart >= range.start && a.didEnd <= range.end)
+              const rangeUsed = rangeAssignments.reduce((sum, a) => sum + (a.didEnd - a.didStart + 1), 0)
               return (
-                <div
-                  key={a.id}
-                  className="didbar__seg"
-                  style={{ left: `${left}%`, width: `${width}%`, background: tenantColor(i) }}
-                  title={`${a.tenantName}: ${fmtDID(a.didStart)}–${fmtDID(a.didEnd)}`}
-                />
+                <div className="didrange" key={ri}>
+                  <div className="didrange__label">
+                    <span className="mono">{fmtDID(range.start)}–{fmtDID(range.end)}</span>
+                    <span className="dim mono">{rangeUsed} / {rangeSize}</span>
+                  </div>
+                  <div className="didbar">
+                    {rangeAssignments.map((a) => {
+                      const left = ((a.didStart - range.start) / rangeSize) * 100
+                      const width = ((a.didEnd - a.didStart + 1) / rangeSize) * 100
+                      return (
+                        <div
+                          key={a.id}
+                          className="didbar__seg"
+                          style={{ left: `${left}%`, width: `${width}%`, background: colorByAssignmentId[a.id] }}
+                          title={`${a.tenantName}: ${fmtDID(a.didStart)}–${fmtDID(a.didEnd)}`}
+                        />
+                      )
+                    })}
+                  </div>
+                </div>
               )
             })}
           </div>
+
+          {freeDidRanges.length > 0 && (
+            <div className="free-ranges free-ranges--inline">
+              <span className="free-ranges__label">Available now</span>
+              <div className="free-ranges__chips">
+                {freeDidRanges.map((r, i) => (
+                  <button
+                    type="button"
+                    key={i}
+                    className="free-ranges__chip mono"
+                    onClick={() => openAssignForm(r)}
+                    title="Assign a tenant to this block"
+                  >
+                    {fmtDID(r.start)}–{fmtDID(r.end)}
+                    <span className="free-ranges__chip-count">{(r.end - r.start + 1).toLocaleString()}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -181,11 +229,11 @@ export default function TrunkDetail({ trunk, onChanged, onDeleteTrunk }) {
         {assignForm && (
           <AssignmentForm
             initial={editingAssignment}
+            prefillRange={assignForm.prefillRange}
             onSubmit={handleAssignSubmit}
             onCancel={() => setAssignForm(null)}
             channelsFree={channelsFreeForForm}
-            didFloor={trunk.didStart}
-            didCeil={trunk.didEnd}
+            freeRanges={freeRangesForForm}
           />
         )}
 
@@ -200,10 +248,10 @@ export default function TrunkDetail({ trunk, onChanged, onDeleteTrunk }) {
               <div>Notes</div>
               <div />
             </div>
-            {assignments.map((a, i) => (
+            {assignments.map((a) => (
               <div className="table__row" key={a.id}>
                 <div className="tenant-cell">
-                  <span className="dot" style={{ background: tenantColor(i) }} />
+                  <span className="dot" style={{ background: colorByAssignmentId[a.id] }} />
                   {a.tenantName}
                 </div>
                 <div className="mono">{a.channelsAssigned}</div>

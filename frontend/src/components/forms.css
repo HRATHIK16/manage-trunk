@@ -132,6 +132,123 @@
   border-color: transparent;
 }
 
+.ranges {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-soft);
+}
+
+.ranges__head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.ranges__head > span:first-child {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-dim);
+}
+
+.ranges__row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.ranges__row input {
+  flex: 1;
+  background: #0d1311;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 9px 10px;
+  color: var(--text);
+  font-size: 13.5px;
+  min-width: 0;
+}
+
+.ranges__row input:focus {
+  border-color: var(--amber-dim);
+}
+
+.ranges__dash {
+  color: var(--text-dim);
+  flex-shrink: 0;
+}
+
+.ranges__remove {
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.ranges__remove:hover:not(:disabled) {
+  border-color: var(--red-dim);
+  color: var(--red);
+}
+
+.ranges__remove:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.ranges__add {
+  margin-top: 4px;
+  padding: 6px 10px;
+  font-size: 12.5px;
+}
+
+.free-ranges {
+  margin-bottom: 16px;
+}
+
+.free-ranges__label {
+  display: block;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-dim);
+  margin-bottom: 8px;
+}
+
+.free-ranges__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.free-ranges__chip {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: rgba(74, 222, 128, 0.06);
+  border: 1px solid var(--green-dim);
+  color: var(--green);
+  border-radius: 5px;
+  padding: 6px 10px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.free-ranges__chip:hover {
+  background: rgba(74, 222, 128, 0.14);
+}
+
+.free-ranges__chip-count {
+  color: var(--text-dim);
+  font-size: 10.5px;
+}
+
 .btn--danger {
   color: var(--red);
   border-color: var(--red-dim);

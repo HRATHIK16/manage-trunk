@@ -76,25 +76,27 @@ function AuthedApp() {
       />
 
       <main className="app__main">
-        {loading && <div className="panel form">Loading trunks…</div>}
+        <div className="app__main-inner">
+          {loading && <div className="panel form">Loading trunks…</div>}
 
-        {!loading && error && <div className="panel form">Couldn't reach the backend: {error}</div>}
+          {!loading && error && <div className="panel form">Couldn't reach the backend: {error}</div>}
 
-        {!loading && !error && showForm && (
-          <TrunkForm onSubmit={handleCreateTrunk} onCancel={() => setShowForm(false)} />
-        )}
+          {!loading && !error && showForm && (
+            <TrunkForm onSubmit={handleCreateTrunk} onCancel={() => setShowForm(false)} />
+          )}
 
-        {!loading && !error && !showForm && selected && (
-          <TrunkDetail trunk={selected} onChanged={handleChanged} onDeleteTrunk={handleTrunkDeleted} />
-        )}
+          {!loading && !error && !showForm && selected && (
+            <TrunkDetail trunk={selected} onChanged={handleChanged} onDeleteTrunk={handleTrunkDeleted} />
+          )}
 
-        {!loading && !error && !showForm && !selected && (
-          <div className="panel form empty-state">
-            <h2>No SIP trunk selected</h2>
-            <p>Add your first trunk — set its pilot number, DID range, channel count and CPS — then assign channels and DIDs to tenants as they onboard.</p>
-            <button className="btn btn--primary" onClick={() => setShowForm(true)}>+ New trunk</button>
-          </div>
-        )}
+          {!loading && !error && !showForm && !selected && (
+            <div className="panel form empty-state">
+              <h2>No SIP trunk selected</h2>
+              <p>Add your first trunk — set its pilot number, DID range, channel count and CPS — then assign channels and DIDs to tenants as they onboard.</p>
+              <button className="btn btn--primary" onClick={() => setShowForm(true)}>+ New trunk</button>
+            </div>
+          )}
+        </div>
       </main>
 
       <ActivityFeed refreshKey={activityKey} />

@@ -1,25 +1,37 @@
 import { useState } from 'react'
 import './forms.css'
 
-function toFormState(assignment) {
-  if (!assignment) return { tenantName: '', channelsAssigned: '', didStart: '', didEnd: '', notes: '' }
+function toFormState(assignment, prefillRange) {
+  if (assignment) {
+    return {
+      tenantName: assignment.tenantName,
+      channelsAssigned: String(assignment.channelsAssigned),
+      didStart: String(assignment.didStart),
+      didEnd: String(assignment.didEnd),
+      notes: assignment.notes || '',
+    }
+  }
   return {
-    tenantName: assignment.tenantName,
-    channelsAssigned: String(assignment.channelsAssigned),
-    didStart: String(assignment.didStart),
-    didEnd: String(assignment.didEnd),
-    notes: assignment.notes || '',
+    tenantName: '',
+    channelsAssigned: '',
+    didStart: prefillRange ? String(prefillRange.start) : '',
+    didEnd: prefillRange ? String(prefillRange.end) : '',
+    notes: '',
   }
 }
 
-export default function AssignmentForm({ initial = null, onSubmit, onCancel, channelsFree, didFloor, didCeil }) {
+export default function AssignmentForm({ initial = null, prefillRange = null, onSubmit, onCancel, channelsFree, freeRanges = [] }) {
   const editing = Boolean(initial)
-  const [form, setForm] = useState(() => toFormState(initial))
+  const [form, setForm] = useState(() => toFormState(initial, prefillRange))
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
 
   function set(key, value) {
     setForm((f) => ({ ...f, [key]: value }))
+  }
+
+  function pickRange(r) {
+    setForm((f) => ({ ...f, didStart: String(r.start), didEnd: String(r.end) }))
   }
 
   async function submit(e) {
@@ -42,7 +54,7 @@ export default function AssignmentForm({ initial = null, onSubmit, onCancel, cha
     setBusy(true)
     try {
       await onSubmit(payload)
-      if (!editing) setForm(toFormState(null))
+      if (!editing) setForm(toFormState(null, null))
     } catch (err) {
       setError(err.message)
     } finally {
@@ -54,8 +66,28 @@ export default function AssignmentForm({ initial = null, onSubmit, onCancel, cha
     <form className="panel form form--compact" onSubmit={submit}>
       <div className="form__header">
         <h3>{editing ? `Edit ${initial.tenantName}'s assignment` : 'Assign to tenant'}</h3>
-        <span className="hint">{channelsFree} channel{channelsFree === 1 ? '' : 's'} free · DIDs {didFloor}–{didCeil}</span>
+        <span className="hint">{channelsFree} channel{channelsFree === 1 ? '' : 's'} free</span>
       </div>
+
+      {freeRanges.length > 0 && (
+        <div className="free-ranges">
+          <span className="free-ranges__label">Available DIDs</span>
+          <div className="free-ranges__chips">
+            {freeRanges.map((r, i) => (
+              <button
+                type="button"
+                key={i}
+                className="free-ranges__chip mono"
+                onClick={() => pickRange(r)}
+                title="Use this whole block"
+              >
+                {r.start}–{r.end}
+                <span className="free-ranges__chip-count">{(r.end - r.start + 1).toLocaleString()}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="form__grid">
         <label className="field">
@@ -82,7 +114,7 @@ export default function AssignmentForm({ initial = null, onSubmit, onCancel, cha
             type="number"
             value={form.didStart}
             onChange={(e) => set('didStart', e.target.value)}
-            placeholder={String(didFloor)}
+            placeholder="e.g. 1201"
           />
         </label>
 
@@ -93,7 +125,7 @@ export default function AssignmentForm({ initial = null, onSubmit, onCancel, cha
             type="number"
             value={form.didEnd}
             onChange={(e) => set('didEnd', e.target.value)}
-            placeholder={String(didFloor)}
+            placeholder="e.g. 1499"
           />
         </label>
 

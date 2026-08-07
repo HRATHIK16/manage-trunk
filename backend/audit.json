@@ -47,5 +47,82 @@
     "user": "hrathik",
     "action": "backup.restored",
     "message": "restored data from a backup file (3 trunk(s), 8 assignment(s))"
+  },
+  {
+    "id": "evt_3e632949a804",
+    "timestamp": "2026-08-07T08:03:51.0964925Z",
+    "user": "admin",
+    "action": "auth.login",
+    "message": "logged in"
+  },
+  {
+    "id": "evt_57c123da8f6c",
+    "timestamp": "2026-08-07T08:04:34.972552Z",
+    "user": "admin",
+    "action": "auth.login",
+    "message": "logged in"
+  },
+  {
+    "id": "evt_f1f02b5cd19d",
+    "timestamp": "2026-08-07T08:10:29.9818565Z",
+    "user": "admin",
+    "action": "trunk.created",
+    "message": "added new trunk \"jio-sandbox\" (lab, 20 channels, CPS 2)"
+  },
+  {
+    "id": "evt_f5a6d6d59545",
+    "timestamp": "2026-08-07T09:12:29.65158Z",
+    "user": "admin",
+    "action": "auth.login",
+    "message": "logged in"
+  },
+  {
+    "id": "evt_b2d3efef4c65",
+    "timestamp": "2026-08-07T09:14:46.5089966Z",
+    "user": "admin",
+    "action": "trunk.created",
+    "message": "added new trunk \"mlr-airtel\" (prod, 500 channels, CPS 40)"
+  },
+  {
+    "id": "evt_89999caa1db8",
+    "timestamp": "2026-08-07T09:16:39.2483463Z",
+    "user": "admin",
+    "action": "assignment.created",
+    "message": "assigned 2 channel(s) and DIDs 8203542280–8203542280 to \"callkaro\" on trunk \"jio-sandbox\""
+  },
+  {
+    "id": "evt_9aa3d0c25b32",
+    "timestamp": "2026-08-07T09:38:35.7424481Z",
+    "user": "admin",
+    "action": "assignment.created",
+    "message": "assigned 5 channel(s) and DIDs 8203542269–8203542273 to \"copter\" on trunk \"jio-sandbox\""
+  },
+  {
+    "id": "evt_d41c2f8099fc",
+    "timestamp": "2026-08-07T09:41:58.6487858Z",
+    "user": "hrathik",
+    "action": "auth.login",
+    "message": "logged in"
+  },
+  {
+    "id": "evt_385940c4d951",
+    "timestamp": "2026-08-07T09:59:21.9029369Z",
+    "user": "hrathik",
+    "action": "assignment.deleted",
+    "message": "removed \"copter\"'s assignment (5 channel(s)) from trunk \"jio-sandbox\""
+  },
+  {
+    "id": "evt_e540201cf38e",
+    "timestamp": "2026-08-07T10:00:45.3318654Z",
+    "user": "hrathik",
+    "action": "trunk.updated",
+    "message": "updated trunk \"mlr-airtel\""
+  },
+  {
+    "id": "evt_6b6e87a67502",
+    "timestamp": "2026-08-07T10:03:32.7585458Z",
+    "user": "hrathik",
+    "action": "assignment.created",
+    "message": "assigned 1 channel(s) and DIDs 1111–1222 to \"12\" on trunk \"mlr-airtel\""
   }
 ]

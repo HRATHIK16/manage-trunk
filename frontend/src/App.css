@@ -1,12 +1,24 @@
 .app {
   display: flex;
   min-height: 100vh;
+  width: 100%;
 }
 
+/* The flex item itself has no width cap, so it always fills whatever space
+   is left between the sidebar and the activity feed — no matter the zoom
+   level or viewport width. The cap lives on the inner content instead, so
+   it stays readable while the surrounding area doesn't leave dead space. */
 .app__main {
-  flex: 1;
-  padding: 28px 36px 60px;
-  max-width: 980px;
+  flex: 1 1 0%;
+  min-width: 0;
+  display: flex;
+  justify-content: center;
+  padding: 28px clamp(20px, 3vw, 48px) 60px;
+}
+
+.app__main-inner {
+  width: 100%;
+  max-width: 1100px;
 }
 
 .empty-state {
@@ -29,4 +41,53 @@
 
 .mono {
   font-family: var(--mono);
+}
+
+/* ---- Responsive breakpoints ---- */
+
+@media (max-width: 1240px) {
+  .activity {
+    width: 240px;
+  }
+}
+
+@media (max-width: 1040px) {
+  .activity {
+    display: none;
+  }
+}
+
+@media (max-width: 780px) {
+  .sidebar {
+    width: 210px;
+    padding: 16px 12px;
+  }
+  .app__main {
+    padding: 20px 16px 40px;
+  }
+  .form__grid {
+    grid-template-columns: 1fr;
+  }
+  .detail__stats {
+    gap: 20px;
+  }
+  .table__row {
+    grid-template-columns: 1.2fr 0.6fr 1.3fr 1fr;
+  }
+  .table__row > div:nth-child(4) {
+    display: none;
+  }
+}
+
+@media (max-width: 560px) {
+  .app {
+    flex-direction: column;
+  }
+  .sidebar {
+    width: 100%;
+    height: auto;
+    position: static;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
 }

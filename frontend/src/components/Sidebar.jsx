@@ -21,7 +21,7 @@ export default function Sidebar({ trunks, selectedId, onSelect, onNew, onDataCha
     <aside className="sidebar">
       <div className="sidebar__brand">
         <span className="sidebar__mark">◆</span>
-        <span>Trunkline</span>
+        <span>Trunk Manager</span>
       </div>
 
       <button className="btn btn--primary sidebar__new" onClick={onNew}>+ New trunk</button>
@@ -38,8 +38,10 @@ export default function Sidebar({ trunks, selectedId, onSelect, onNew, onDataCha
                 onClick={() => onSelect(t.id)}
               >
                 <span className={`sidebar__dot sidebar__dot--${env}`} />
-                <span className="sidebar__item-name">{t.name}</span>
-                <span className="sidebar__item-ch mono">{t.totalChannels}ch</span>
+                <span className="sidebar__item-text">
+                  <span className="sidebar__item-name">{t.name}</span>
+                  <span className="sidebar__item-sub mono">{t.totalChannels} channels</span>
+                </span>
               </button>
             ))}
           </div>

@@ -101,7 +101,7 @@ func (s *Store) CreateTrunk(t SipTrunk) SipTrunk {
 
 // UpdateTrunk overwrites a trunk's editable fields, refusing changes that
 // would strand existing tenant assignments (shrinking capacity below what's
-// already handed out, or narrowing the DID range past assigned DIDs).
+// already handed out, or removing DID coverage that's already assigned).
 func (s *Store) UpdateTrunk(id string, upd SipTrunk) (SipTrunk, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -110,32 +110,24 @@ func (s *Store) UpdateTrunk(id string, upd SipTrunk) (SipTrunk, error) {
 	if !ok {
 		return SipTrunk{}, fmt.Errorf("trunk not found")
 	}
-	if upd.DIDStart > upd.DIDEnd {
-		return SipTrunk{}, fmt.Errorf("did range start must be <= end")
-	}
 
 	channelsUsed := 0
-	var minDID, maxDID int64
-	hasAssignments := false
+	var assignedRanges []DIDRange
 	for _, a := range s.assignments {
 		if a.TrunkID != id {
 			continue
 		}
 		channelsUsed += a.ChannelsAssigned
-		if !hasAssignments || a.DIDStart < minDID {
-			minDID = a.DIDStart
-		}
-		if !hasAssignments || a.DIDEnd > maxDID {
-			maxDID = a.DIDEnd
-		}
-		hasAssignments = true
+		assignedRanges = append(assignedRanges, DIDRange{Start: a.DIDStart, End: a.DIDEnd})
 	}
 
 	if upd.TotalChannels < channelsUsed {
 		return SipTrunk{}, fmt.Errorf("can't set total channels below %d — that many are already assigned to tenants", channelsUsed)
 	}
-	if hasAssignments && (upd.DIDStart > minDID || upd.DIDEnd < maxDID) {
-		return SipTrunk{}, fmt.Errorf("can't shrink did range below existing tenant assignments (%d-%d already in use)", minDID, maxDID)
+	for _, ar := range assignedRanges {
+		if !upd.ContainsRange(ar.Start, ar.End) {
+			return SipTrunk{}, fmt.Errorf("can't remove did coverage for %d-%d — it's already assigned to a tenant", ar.Start, ar.End)
+		}
 	}
 
 	upd.ID = id
@@ -191,12 +183,12 @@ func (s *Store) CreateAssignment(a Assignment) (Assignment, error) {
 		return Assignment{}, fmt.Errorf("trunk not found")
 	}
 
-	// Validate DID range is within the trunk's DID range
+	// Validate DID range fits entirely within one of the trunk's DID ranges
 	if a.DIDStart > a.DIDEnd {
 		return Assignment{}, fmt.Errorf("did range start must be <= end")
 	}
-	if a.DIDStart < trunk.DIDStart || a.DIDEnd > trunk.DIDEnd {
-		return Assignment{}, fmt.Errorf("did range must fall within the trunk's did range (%d-%d)", trunk.DIDStart, trunk.DIDEnd)
+	if !trunk.ContainsRange(a.DIDStart, a.DIDEnd) {
+		return Assignment{}, fmt.Errorf("did range must fall entirely within one of the trunk's did ranges")
 	}
 
 	existing := []Assignment{}
@@ -247,8 +239,8 @@ func (s *Store) UpdateAssignment(id string, upd Assignment) (Assignment, error) 
 	if upd.DIDStart > upd.DIDEnd {
 		return Assignment{}, fmt.Errorf("did range start must be <= end")
 	}
-	if upd.DIDStart < trunk.DIDStart || upd.DIDEnd > trunk.DIDEnd {
-		return Assignment{}, fmt.Errorf("did range must fall within the trunk's did range (%d-%d)", trunk.DIDStart, trunk.DIDEnd)
+	if !trunk.ContainsRange(upd.DIDStart, upd.DIDEnd) {
+		return Assignment{}, fmt.Errorf("did range must fall entirely within one of the trunk's did ranges")
 	}
 
 	channelsUsed := 0
@@ -299,22 +291,25 @@ func (s *Store) Summary(trunkID string) (TrunkSummary, error) {
 	assignments := []Assignment{}
 	channelsUsed := 0
 	var didsAssigned int64
+	var usedRanges []DIDRange
 	for _, a := range s.assignments {
 		if a.TrunkID == trunkID {
 			assignments = append(assignments, a)
 			channelsUsed += a.ChannelsAssigned
 			didsAssigned += a.DIDEnd - a.DIDStart + 1
+			usedRanges = append(usedRanges, DIDRange{Start: a.DIDStart, End: a.DIDEnd})
 		}
 	}
-	totalDIDs := trunk.DIDEnd - trunk.DIDStart + 1
+	totalDIDs := trunk.TotalDIDs()
 	return TrunkSummary{
-		Trunk:        trunk,
-		Assignments:  assignments,
-		ChannelsUsed: channelsUsed,
-		ChannelsFree: trunk.TotalChannels - channelsUsed,
-		TotalDIDs:    totalDIDs,
-		DIDsAssigned: didsAssigned,
-		DIDsFree:     totalDIDs - didsAssigned,
+		Trunk:         trunk,
+		Assignments:   assignments,
+		ChannelsUsed:  channelsUsed,
+		ChannelsFree:  trunk.TotalChannels - channelsUsed,
+		TotalDIDs:     totalDIDs,
+		DIDsAssigned:  didsAssigned,
+		DIDsFree:      totalDIDs - didsAssigned,
+		FreeDIDRanges: computeFreeDIDRanges(trunk.DIDRanges, usedRanges),
 	}, nil
 }
 

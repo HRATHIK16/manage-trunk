@@ -86,7 +86,7 @@ export default function BackupPanel({ onClose, onRestored }) {
       {pendingFile && (
         <ConfirmDialog
           title="Restore from backup?"
-          message={`This replaces everything currently in Trunkline with the contents of "${pendingFile.name}". This can't be undone.`}
+          message={`This replaces everything currently in Trunk Manager with the contents of "${pendingFile.name}". This can't be undone.`}
           confirmLabel="Restore"
           danger
           busy={busy}
