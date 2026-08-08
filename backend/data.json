@@ -12,7 +12,7 @@
         },
         {
           "start": 1000,
-          "end": 2000
+          "end": 2999
         }
       ],
       "totalChannels": 500,
@@ -38,25 +38,87 @@
     }
   },
   "assignments": {
+    "asn_2186b5c6f3b2": {
+      "id": "asn_2186b5c6f3b2",
+      "trunkId": "trunk_70688952d761",
+      "tenantName": "fdawe",
+      "channelsAssigned": 50,
+      "didRanges": [
+        {
+          "start": 1000,
+          "end": 1492
+        }
+      ],
+      "notes": "",
+      "createdAt": "2026-08-08T11:19:28.268648984Z"
+    },
     "asn_26561a31ec22": {
       "id": "asn_26561a31ec22",
       "trunkId": "trunk_70688952d761",
-      "tenantName": "12",
-      "channelsAssigned": 1,
-      "didStart": 1111,
-      "didEnd": 1222,
-      "notes": "",
+      "tenantName": "ck",
+      "channelsAssigned": 150,
+      "didRanges": [
+        {
+          "start": 8244463670,
+          "end": 8244464069
+        },
+        {
+          "start": 1500,
+          "end": 1600
+        }
+      ],
+      "notes": "Assigned 10 extra DID on 9th August",
       "createdAt": "2026-08-07T10:03:32.7579323Z"
+    },
+    "asn_613c8fdb138e": {
+      "id": "asn_613c8fdb138e",
+      "trunkId": "trunk_70688952d761",
+      "tenantName": "abc",
+      "channelsAssigned": 100,
+      "didRanges": [
+        {
+          "start": 1700,
+          "end": 1999
+        }
+      ],
+      "notes": "",
+      "createdAt": "2026-08-08T11:20:48.37646969Z"
     },
     "asn_749cec3d05fd": {
       "id": "asn_749cec3d05fd",
       "trunkId": "trunk_a0ce692c4311",
       "tenantName": "callkaro",
       "channelsAssigned": 2,
-      "didStart": 8203542280,
-      "didEnd": 8203542280,
-      "notes": "",
+      "didRanges": [
+        {
+          "start": 8203542267,
+          "end": 8203542280
+        },
+        {
+          "start": 8203542281,
+          "end": 8203542285
+        }
+      ],
+      "notes": "hello this a to test how we'll be viewingt the comment section if the comment is too long sentence need to check how it wraps the words in the main view and nothing thisis just in increaste the length of the sentence",
       "createdAt": "2026-08-07T09:16:39.2477383Z"
+    },
+    "asn_f7220282d845": {
+      "id": "asn_f7220282d845",
+      "trunkId": "trunk_70688952d761",
+      "tenantName": "test",
+      "channelsAssigned": 198,
+      "didRanges": [
+        {
+          "start": 2000,
+          "end": 2999
+        },
+        {
+          "start": 8244464070,
+          "end": 8244464169
+        }
+      ],
+      "notes": "",
+      "createdAt": "2026-08-08T11:43:53.878779972Z"
     }
   }
 }

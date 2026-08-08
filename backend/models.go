@@ -60,16 +60,27 @@ func (t SipTrunk) ContainsRange(start, end int64) bool {
 	return false
 }
 
-// Assignment represents a slice of a trunk's channels + a DID block handed to a tenant.
+// Assignment represents a slice of a trunk's channels + one or more DID
+// blocks handed to a tenant. Most tenants get a single contiguous block,
+// but some end up with a few scattered ones (e.g. 1000-1100 and
+// 1500-1600), so this mirrors how SipTrunk.DIDRanges works.
 type Assignment struct {
-	ID               string    `json:"id"`
-	TrunkID          string    `json:"trunkId"`
-	TenantName       string    `json:"tenantName"`
-	ChannelsAssigned int       `json:"channelsAssigned"`
-	DIDStart         int64     `json:"didStart"`
-	DIDEnd           int64     `json:"didEnd"` // inclusive
-	Notes            string    `json:"notes"`
-	CreatedAt        time.Time `json:"createdAt"`
+	ID               string     `json:"id"`
+	TrunkID          string     `json:"trunkId"`
+	TenantName       string     `json:"tenantName"`
+	ChannelsAssigned int        `json:"channelsAssigned"`
+	DIDRanges        []DIDRange `json:"didRanges"`
+	Notes            string     `json:"notes"`
+	CreatedAt        time.Time  `json:"createdAt"`
+}
+
+// TotalDIDs sums the size of every DID range on the assignment.
+func (a Assignment) TotalDIDs() int64 {
+	var total int64
+	for _, r := range a.DIDRanges {
+		total += r.Size()
+	}
+	return total
 }
 
 // TrunkSummary is a computed view of capacity usage for a trunk.

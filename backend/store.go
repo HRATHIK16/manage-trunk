@@ -118,7 +118,7 @@ func (s *Store) UpdateTrunk(id string, upd SipTrunk) (SipTrunk, error) {
 			continue
 		}
 		channelsUsed += a.ChannelsAssigned
-		assignedRanges = append(assignedRanges, DIDRange{Start: a.DIDStart, End: a.DIDEnd})
+		assignedRanges = append(assignedRanges, a.DIDRanges...)
 	}
 
 	if upd.TotalChannels < channelsUsed {
@@ -183,12 +183,17 @@ func (s *Store) CreateAssignment(a Assignment) (Assignment, error) {
 		return Assignment{}, fmt.Errorf("trunk not found")
 	}
 
-	// Validate DID range fits entirely within one of the trunk's DID ranges
-	if a.DIDStart > a.DIDEnd {
-		return Assignment{}, fmt.Errorf("did range start must be <= end")
+	// Validate the assignment's own DID ranges are well-formed and don't
+	// overlap each other (reuses the same check trunks use).
+	if msg := validateDIDRanges(a.DIDRanges); msg != "" {
+		return Assignment{}, fmt.Errorf("%s", msg)
 	}
-	if !trunk.ContainsRange(a.DIDStart, a.DIDEnd) {
-		return Assignment{}, fmt.Errorf("did range must fall entirely within one of the trunk's did ranges")
+	// Each range must fall entirely within one of the trunk's DID ranges —
+	// a single block can't straddle two separate trunk ranges.
+	for _, r := range a.DIDRanges {
+		if !trunk.ContainsRange(r.Start, r.End) {
+			return Assignment{}, fmt.Errorf("did range %d-%d must fall entirely within one of the trunk's did ranges", r.Start, r.End)
+		}
 	}
 
 	existing := []Assignment{}
@@ -208,10 +213,10 @@ func (s *Store) CreateAssignment(a Assignment) (Assignment, error) {
 			trunk.TotalChannels, channelsUsed, a.ChannelsAssigned)
 	}
 
-	// Validate DID overlap
+	// Validate DID overlap against every other tenant's ranges on this trunk
 	for _, ex := range existing {
-		if a.DIDStart <= ex.DIDEnd && ex.DIDStart <= a.DIDEnd {
-			return Assignment{}, fmt.Errorf("did range overlaps existing assignment to %q (%d-%d)", ex.TenantName, ex.DIDStart, ex.DIDEnd)
+		if _, exRange, overlap := rangesOverlap(a.DIDRanges, ex.DIDRanges); overlap {
+			return Assignment{}, fmt.Errorf("did range overlaps existing assignment to %q (%d-%d)", ex.TenantName, exRange.Start, exRange.End)
 		}
 	}
 
@@ -236,11 +241,13 @@ func (s *Store) UpdateAssignment(id string, upd Assignment) (Assignment, error) 
 	if !ok {
 		return Assignment{}, fmt.Errorf("trunk not found")
 	}
-	if upd.DIDStart > upd.DIDEnd {
-		return Assignment{}, fmt.Errorf("did range start must be <= end")
+	if msg := validateDIDRanges(upd.DIDRanges); msg != "" {
+		return Assignment{}, fmt.Errorf("%s", msg)
 	}
-	if !trunk.ContainsRange(upd.DIDStart, upd.DIDEnd) {
-		return Assignment{}, fmt.Errorf("did range must fall entirely within one of the trunk's did ranges")
+	for _, r := range upd.DIDRanges {
+		if !trunk.ContainsRange(r.Start, r.End) {
+			return Assignment{}, fmt.Errorf("did range %d-%d must fall entirely within one of the trunk's did ranges", r.Start, r.End)
+		}
 	}
 
 	channelsUsed := 0
@@ -256,8 +263,8 @@ func (s *Store) UpdateAssignment(id string, upd Assignment) (Assignment, error) 
 
 	for _, ex := range s.assignments {
 		if ex.TrunkID == existing.TrunkID && ex.ID != id {
-			if upd.DIDStart <= ex.DIDEnd && ex.DIDStart <= upd.DIDEnd {
-				return Assignment{}, fmt.Errorf("did range overlaps existing assignment to %q (%d-%d)", ex.TenantName, ex.DIDStart, ex.DIDEnd)
+			if _, exRange, overlap := rangesOverlap(upd.DIDRanges, ex.DIDRanges); overlap {
+				return Assignment{}, fmt.Errorf("did range overlaps existing assignment to %q (%d-%d)", ex.TenantName, exRange.Start, exRange.End)
 			}
 		}
 	}
@@ -296,8 +303,8 @@ func (s *Store) Summary(trunkID string) (TrunkSummary, error) {
 		if a.TrunkID == trunkID {
 			assignments = append(assignments, a)
 			channelsUsed += a.ChannelsAssigned
-			didsAssigned += a.DIDEnd - a.DIDStart + 1
-			usedRanges = append(usedRanges, DIDRange{Start: a.DIDStart, End: a.DIDEnd})
+			didsAssigned += a.TotalDIDs()
+			usedRanges = append(usedRanges, a.DIDRanges...)
 		}
 	}
 	totalDIDs := trunk.TotalDIDs()

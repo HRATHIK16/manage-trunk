@@ -228,6 +228,11 @@
   color: var(--text-dim);
 }
 
+.did-cell {
+  white-space: normal;
+  line-height: 1.5;
+}
+
 .btn--small {
   padding: 5px 10px;
   font-size: 12px;

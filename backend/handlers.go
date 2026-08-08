@@ -64,8 +64,8 @@ func validateAssignmentInput(a Assignment) string {
 	if a.ChannelsAssigned <= 0 {
 		return "channels assigned must be greater than 0"
 	}
-	if a.DIDStart <= 0 || a.DIDEnd <= 0 {
-		return "did range must be positive numbers"
+	if msg := validateDIDRanges(a.DIDRanges); msg != "" {
+		return msg
 	}
 	return ""
 }
@@ -221,8 +221,8 @@ func (api *API) trunkAssignmentsHandler(w http.ResponseWriter, r *http.Request, 
 			trunkName = t.Name
 		}
 		api.audit.Log(userFromContext(r), "assignment.created",
-			fmt.Sprintf("assigned %d channel(s) and DIDs %d\u2013%d to %q on trunk %q",
-				created.ChannelsAssigned, created.DIDStart, created.DIDEnd, created.TenantName, trunkName))
+			fmt.Sprintf("assigned %d channel(s) and DIDs %s to %q on trunk %q",
+				created.ChannelsAssigned, formatDIDRanges(created.DIDRanges), created.TenantName, trunkName))
 		writeJSON(w, http.StatusCreated, created)
 	default:
 		writeErr(w, http.StatusMethodNotAllowed, "method not allowed")
@@ -253,8 +253,8 @@ func (api *API) assignmentByIDHandler(w http.ResponseWriter, r *http.Request, id
 			trunkName = t.Name
 		}
 		api.audit.Log(userFromContext(r), "assignment.updated",
-			fmt.Sprintf("updated %q's assignment on trunk %q (%d channel(s), DIDs %d\u2013%d)",
-				updated.TenantName, trunkName, updated.ChannelsAssigned, updated.DIDStart, updated.DIDEnd))
+			fmt.Sprintf("updated %q's assignment on trunk %q (%d channel(s), DIDs %s)",
+				updated.TenantName, trunkName, updated.ChannelsAssigned, formatDIDRanges(updated.DIDRanges)))
 		writeJSON(w, http.StatusOK, updated)
 
 	case http.MethodDelete:

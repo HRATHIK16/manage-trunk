@@ -152,6 +152,7 @@ export default function TrunkForm({ initial = null, onSubmit, onCancel }) {
       <div className="ranges">
         <div className="ranges__head">
           <span>DID ranges</span>
+          <span className="hint">Most trunks have one — add more if this trunk has separate blocks.</span>
         </div>
 
         {form.didRanges.map((r, i) => (

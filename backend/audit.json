@@ -124,5 +124,131 @@
     "user": "hrathik",
     "action": "assignment.created",
     "message": "assigned 1 channel(s) and DIDs 1111–1222 to \"12\" on trunk \"mlr-airtel\""
+  },
+  {
+    "id": "evt_42a5b508af7d",
+    "timestamp": "2026-08-08T10:34:17.764868339Z",
+    "user": "admin",
+    "action": "auth.login",
+    "message": "logged in"
+  },
+  {
+    "id": "evt_ee13dbc2f5ea",
+    "timestamp": "2026-08-08T10:44:33.146787817Z",
+    "user": "admin",
+    "action": "auth.login",
+    "message": "logged in"
+  },
+  {
+    "id": "evt_ba0a8592cfe1",
+    "timestamp": "2026-08-08T10:46:03.331153252Z",
+    "user": "admin",
+    "action": "assignment.updated",
+    "message": "updated \"callkaro\"'s assignment on trunk \"jio-sandbox\" (2 channel(s), DIDs 8203542267-8203542287)"
+  },
+  {
+    "id": "evt_ac9ec896da11",
+    "timestamp": "2026-08-08T10:46:35.964749761Z",
+    "user": "admin",
+    "action": "assignment.updated",
+    "message": "updated \"callkaro\"'s assignment on trunk \"jio-sandbox\" (2 channel(s), DIDs 8203542267-8203542280, 8203542281-8203542285)"
+  },
+  {
+    "id": "evt_a0815a1c0ca7",
+    "timestamp": "2026-08-08T10:51:20.057847485Z",
+    "user": "admin",
+    "action": "trunk.updated",
+    "message": "updated trunk \"mlr-airtel\""
+  },
+  {
+    "id": "evt_5dc0e276dfe4",
+    "timestamp": "2026-08-08T10:58:44.399406265Z",
+    "user": "admin",
+    "action": "assignment.updated",
+    "message": "updated \"12\"'s assignment on trunk \"mlr-airtel\" (1 channel(s), DIDs 8244463670-8244464169)"
+  },
+  {
+    "id": "evt_e282c6dbfbde",
+    "timestamp": "2026-08-08T10:59:21.973348953Z",
+    "user": "admin",
+    "action": "assignment.updated",
+    "message": "updated \"12\"'s assignment on trunk \"mlr-airtel\" (1 channel(s), DIDs 8244463670-8244464169)"
+  },
+  {
+    "id": "evt_9efc04207ef7",
+    "timestamp": "2026-08-08T10:59:28.003153744Z",
+    "user": "admin",
+    "action": "assignment.updated",
+    "message": "updated \"12\"'s assignment on trunk \"mlr-airtel\" (1 channel(s), DIDs 8244463670-8244464169)"
+  },
+  {
+    "id": "evt_e9b28089f728",
+    "timestamp": "2026-08-08T10:59:37.742928847Z",
+    "user": "admin",
+    "action": "assignment.updated",
+    "message": "updated \"12\"'s assignment on trunk \"mlr-airtel\" (1 channel(s), DIDs 8244463670-8244464169)"
+  },
+  {
+    "id": "evt_d8cd71f1f64d",
+    "timestamp": "2026-08-08T11:00:44.621937584Z",
+    "user": "admin",
+    "action": "assignment.updated",
+    "message": "updated \"ck\"'s assignment on trunk \"mlr-airtel\" (1 channel(s), DIDs 8244463670-8244464169)"
+  },
+  {
+    "id": "evt_64f5d62c9087",
+    "timestamp": "2026-08-08T11:10:07.156584248Z",
+    "user": "admin",
+    "action": "assignment.updated",
+    "message": "updated \"callkaro\"'s assignment on trunk \"jio-sandbox\" (2 channel(s), DIDs 8203542267-8203542280, 8203542281-8203542285)"
+  },
+  {
+    "id": "evt_45b27cb81d49",
+    "timestamp": "2026-08-08T11:18:25.924258257Z",
+    "user": "admin",
+    "action": "assignment.updated",
+    "message": "updated \"ck\"'s assignment on trunk \"mlr-airtel\" (1 channel(s), DIDs 8244463670-8244464069, 1500-1600)"
+  },
+  {
+    "id": "evt_ce9d374be478",
+    "timestamp": "2026-08-08T11:19:28.269019755Z",
+    "user": "admin",
+    "action": "assignment.created",
+    "message": "assigned 50 channel(s) and DIDs 1000-1492 to \"fdawe\" on trunk \"mlr-airtel\""
+  },
+  {
+    "id": "evt_061b87c361a9",
+    "timestamp": "2026-08-08T11:20:48.376837602Z",
+    "user": "admin",
+    "action": "assignment.created",
+    "message": "assigned 100 channel(s) and DIDs 1700-1999 to \"abc\" on trunk \"mlr-airtel\""
+  },
+  {
+    "id": "evt_d9d1f04a21bb",
+    "timestamp": "2026-08-08T11:43:53.878924467Z",
+    "user": "admin",
+    "action": "assignment.created",
+    "message": "assigned 198 channel(s) and DIDs 2000-2999, 8244464070-8244464169 to \"test\" on trunk \"mlr-airtel\""
+  },
+  {
+    "id": "evt_e6592df3954e",
+    "timestamp": "2026-08-08T11:45:13.644220073Z",
+    "user": "admin",
+    "action": "assignment.updated",
+    "message": "updated \"ck\"'s assignment on trunk \"mlr-airtel\" (150 channel(s), DIDs 8244463670-8244464069, 1500-1600)"
+  },
+  {
+    "id": "evt_d6ff54e8efb0",
+    "timestamp": "2026-08-08T14:36:45.307141232Z",
+    "user": "admin",
+    "action": "auth.login",
+    "message": "logged in"
+  },
+  {
+    "id": "evt_7f219ceebcb6",
+    "timestamp": "2026-08-08T14:57:48.659384994Z",
+    "user": "admin",
+    "action": "trunk.updated",
+    "message": "updated trunk \"mlr-airtel\""
   }
 ]

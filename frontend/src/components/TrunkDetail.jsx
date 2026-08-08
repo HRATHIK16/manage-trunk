@@ -34,13 +34,16 @@ export default function TrunkDetail({ trunk, onChanged, onDeleteTrunk }) {
 
   const didRanges = trunk.didRanges || []
   const freeDidRanges = summary.freeDidRanges || []
-  const assignments = [...summary.assignments].sort((a, b) => a.didStart - b.didStart)
+  const assignments = [...summary.assignments].sort((a, b) => (a.didRanges?.[0]?.start ?? 0) - (b.didRanges?.[0]?.start ?? 0))
   const segments = assignments.map((a, i) => ({
     count: a.channelsAssigned,
     color: tenantColor(i),
-    label: `${a.tenantName} — ${a.channelsAssigned} ch`,
+    label: `${a.tenantName}`,
   }))
   const colorByAssignmentId = Object.fromEntries(assignments.map((a, i) => [a.id, tenantColor(i)]))
+  // Flatten to one entry per (assignment, range) pair so a tenant with
+  // several scattered blocks shows up correctly in each trunk DID range's bar.
+  const rangePairs = assignments.flatMap((a) => (a.didRanges || []).map((r) => ({ assignment: a, range: r })))
 
   async function handleTrunkEditSubmit(payload) {
     await api.updateTrunk(trunk.id, payload)
@@ -107,7 +110,7 @@ export default function TrunkDetail({ trunk, onChanged, onDeleteTrunk }) {
     ? summary.channelsFree + editingAssignment.channelsAssigned
     : summary.channelsFree
   const freeRangesForForm = editingAssignment
-    ? [...freeDidRanges, { start: editingAssignment.didStart, end: editingAssignment.didEnd }].sort((a, b) => a.start - b.start)
+    ? [...freeDidRanges, ...(editingAssignment.didRanges || [])].sort((a, b) => a.start - b.start)
     : freeDidRanges
 
   function openAssignForm(prefillRange) {
@@ -166,8 +169,8 @@ export default function TrunkDetail({ trunk, onChanged, onDeleteTrunk }) {
           <div className="didranges">
             {didRanges.map((range, ri) => {
               const rangeSize = range.end - range.start + 1
-              const rangeAssignments = assignments.filter((a) => a.didStart >= range.start && a.didEnd <= range.end)
-              const rangeUsed = rangeAssignments.reduce((sum, a) => sum + (a.didEnd - a.didStart + 1), 0)
+              const pairsInRange = rangePairs.filter((p) => p.range.start >= range.start && p.range.end <= range.end)
+              const rangeUsed = pairsInRange.reduce((sum, p) => sum + (p.range.end - p.range.start + 1), 0)
               return (
                 <div className="didrange" key={ri}>
                   <div className="didrange__label">
@@ -175,15 +178,15 @@ export default function TrunkDetail({ trunk, onChanged, onDeleteTrunk }) {
                     <span className="dim mono">{rangeUsed} / {rangeSize}</span>
                   </div>
                   <div className="didbar">
-                    {rangeAssignments.map((a) => {
-                      const left = ((a.didStart - range.start) / rangeSize) * 100
-                      const width = ((a.didEnd - a.didStart + 1) / rangeSize) * 100
+                    {pairsInRange.map((p, pi) => {
+                      const left = ((p.range.start - range.start) / rangeSize) * 100
+                      const width = ((p.range.end - p.range.start + 1) / rangeSize) * 100
                       return (
                         <div
-                          key={a.id}
+                          key={`${p.assignment.id}-${pi}`}
                           className="didbar__seg"
-                          style={{ left: `${left}%`, width: `${width}%`, background: colorByAssignmentId[a.id] }}
-                          title={`${a.tenantName}: ${fmtDID(a.didStart)}–${fmtDID(a.didEnd)}`}
+                          style={{ left: `${left}%`, width: `${width}%`, background: colorByAssignmentId[p.assignment.id] }}
+                          title={`${p.assignment.tenantName}: ${fmtDID(p.range.start)}–${fmtDID(p.range.end)}`}
                         />
                       )
                     })}
@@ -255,7 +258,7 @@ export default function TrunkDetail({ trunk, onChanged, onDeleteTrunk }) {
                   {a.tenantName}
                 </div>
                 <div className="mono">{a.channelsAssigned}</div>
-                <div className="mono">{fmtDID(a.didStart)}–{fmtDID(a.didEnd)}</div>
+                <div className="mono did-cell">{(a.didRanges || []).map((r) => `${fmtDID(r.start)}–${fmtDID(r.end)}`).join(', ')}</div>
                 <div className="dim">{a.notes || '—'}</div>
                 <div className="table__row-actions">
                   <button className="btn btn--ghost btn--small" onClick={() => setAssignForm({ mode: 'edit', assignment: a })}>Edit</button>

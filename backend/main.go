@@ -3,6 +3,8 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -17,6 +19,29 @@ func withCORS(h http.HandlerFunc) http.HandlerFunc {
 		}
 		h(w, r)
 	}
+}
+
+// newStaticHandler serves the built frontend (frontend/dist) directly from
+// the Go binary, so a deployment can be "one binary + one directory" with
+// no separate web server needed. Unknown paths fall back to index.html so
+// a browser refresh on any page still works.
+func newStaticHandler(dir string) http.HandlerFunc {
+	fileServer := http.FileServer(http.Dir(dir))
+	return func(w http.ResponseWriter, r *http.Request) {
+		cleanPath := filepath.Clean(r.URL.Path)
+		if info, err := os.Stat(filepath.Join(dir, cleanPath)); err == nil && !info.IsDir() {
+			fileServer.ServeHTTP(w, r)
+			return
+		}
+		http.ServeFile(w, r, filepath.Join(dir, "index.html"))
+	}
+}
+
+func envOr(key, fallback string) string {
+	if v := os.Getenv(key); v != "" {
+		return v
+	}
+	return fallback
 }
 
 func main() {
@@ -73,7 +98,18 @@ func main() {
 		api.assignmentByIDHandler(w, r, id)
 	})))
 
-	addr := ":8080"
-	log.Printf("sip-trunk-manager backend listening on %s", addr)
+	// Serve the built frontend, if present. In local dev, `npm run dev`
+	// serves the frontend itself (see frontend/vite.config.js's proxy), so
+	// this is skipped when the dist folder doesn't exist yet.
+	staticDir := envOr("STATIC_DIR", "../frontend/dist")
+	if info, err := os.Stat(staticDir); err == nil && info.IsDir() {
+		mux.HandleFunc("/", newStaticHandler(staticDir))
+		log.Printf("serving frontend from %s", staticDir)
+	} else {
+		log.Printf("no frontend build found at %s — API-only mode (fine for `npm run dev`)", staticDir)
+	}
+
+	addr := ":" + envOr("PORT", "8080")
+	log.Printf("trunk manager backend listening on %s", addr)
 	log.Fatal(http.ListenAndServe(addr, mux))
 }

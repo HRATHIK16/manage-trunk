@@ -3,7 +3,18 @@ package main
 import (
 	"fmt"
 	"sort"
+	"strings"
 )
+
+// formatDIDRanges renders ranges as "1000-1100, 1500-1600" for audit
+// messages and other human-readable output.
+func formatDIDRanges(ranges []DIDRange) string {
+	parts := make([]string, len(ranges))
+	for i, r := range ranges {
+		parts[i] = fmt.Sprintf("%d-%d", r.Start, r.End)
+	}
+	return strings.Join(parts, ", ")
+}
 
 // validateDIDRanges checks that a trunk's proposed DID ranges are individually
 // well-formed and don't overlap each other.
@@ -27,6 +38,19 @@ func validateDIDRanges(ranges []DIDRange) string {
 		}
 	}
 	return ""
+}
+
+// rangesOverlap reports whether any range in a overlaps any range in b,
+// returning the first offending pair found.
+func rangesOverlap(a, b []DIDRange) (DIDRange, DIDRange, bool) {
+	for _, ra := range a {
+		for _, rb := range b {
+			if ra.overlaps(rb.Start, rb.End) {
+				return ra, rb, true
+			}
+		}
+	}
+	return DIDRange{}, DIDRange{}, false
 }
 
 // computeFreeDIDRanges subtracts a set of assigned (used) ranges from a
