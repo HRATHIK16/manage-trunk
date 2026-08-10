@@ -1,4 +1,9 @@
-const BASE = '/api'
+// import.meta.env.BASE_URL is Vite's configured `base` (e.g. "/" by
+// default, or "/trunks/" when built with `--base=/trunks/` for a subpath
+// deployment). Deriving the API path from it means api.js automatically
+// calls the right place either way, with no hardcoded assumption about
+// where the app is hosted.
+const BASE = `${import.meta.env.BASE_URL}api`.replace(/\/{2,}/g, '/')
 const TOKEN_KEY = 'trunkline_token'
 
 let token = localStorage.getItem(TOKEN_KEY) || null

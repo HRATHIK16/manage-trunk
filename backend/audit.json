@@ -250,5 +250,12 @@
     "user": "admin",
     "action": "trunk.updated",
     "message": "updated trunk \"mlr-airtel\""
+  },
+  {
+    "id": "evt_df80934f5949",
+    "timestamp": "2026-08-10T11:50:37.726810181Z",
+    "user": "admin",
+    "action": "auth.login",
+    "message": "logged in"
   }
 ]
